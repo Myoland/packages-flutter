@@ -3,9 +3,16 @@
 # `flutter_install_all_macos_pods`, which finds it from the pubspec dependency
 # alone — there is nothing to add to the app's Runner.xcodeproj.
 #
+require 'yaml'
+
+# One source of truth for the version. A podspec that keeps its own copy drifts
+# from the pubspec the moment anyone forgets, and the drift shows up in every
+# consuming app's Podfile.lock.
+pubspec = YAML.load_file(File.join(__dir__, '..', 'pubspec.yaml'))
+
 Pod::Spec.new do |s|
   s.name             = 'myo_window_chrome'
-  s.version          = '0.1.0'
+  s.version          = pubspec['version']
   s.summary          = 'The title bar a dark Myoland macOS window wears.'
   s.description      = <<-DESC
 One copy of the window chrome, shared by every app that uses it, so no two

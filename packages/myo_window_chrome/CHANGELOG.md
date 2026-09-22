@@ -1,3 +1,8 @@
+## 0.2.2
+
+* The podspec reads its version from `pubspec.yaml` instead of keeping a second
+  copy, which had already drifted: 0.2.1 installed as pod `0.1.0`.
+
 ## 0.2.1
 
 * Import FlutterMacOS `@preconcurrency`. `FlutterMethodNotImplemented` is a

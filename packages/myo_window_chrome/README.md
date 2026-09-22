@@ -25,7 +25,7 @@ dependencies:
   myo_window_chrome:
     git:
       url: https://github.com/Myoland/packages-flutter.git
-      ref: myo_window_chrome-v0.2.1
+      ref: myo_window_chrome-v0.2.2
       path: packages/myo_window_chrome
 ```
 
