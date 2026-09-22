@@ -1,5 +1,7 @@
 import AppKit
-import FlutterMacOS
+// @preconcurrency: FlutterMethodNotImplemented is a global `var` in the
+// engine's ObjC headers, which Swift 6 reads as shared mutable state.
+@preconcurrency import FlutterMacOS
 
 /// Applies ``MyoWindowTheme`` to the app's window, and lets Dart change what
 /// it applied.

@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Import FlutterMacOS `@preconcurrency`. `FlutterMethodNotImplemented` is a
+  global `var` in the engine's ObjC headers, which Swift 6 rejects as shared
+  mutable state, so 0.2.0 did not compile in an app built with Swift 6.
+
 ## 0.2.0
 
 * The plugin now applies the chrome itself, as it registers. No app has to
