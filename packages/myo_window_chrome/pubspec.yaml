@@ -1,0 +1,38 @@
+name: myo_window_chrome
+description: The title bar a dark desktop app's window wears. One treatment
+  for macOS, Linux and Windows, so no two of an app's windows can drift apart.
+version: 0.1.0
+publish_to: 'none'
+repository: https://github.com/Myoland/packages-flutter
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      # No Dart API and no method channel anywhere in this package: the chrome
+      # is set on the native window while that window is being built, which is
+      # before the engine starts and so before any Dart isolate exists.
+      #
+      # macOS says that plainly. `ffiPlugin` is the declaration for "build and
+      # link this native code, generate no registrant", and CocoaPods links
+      # every pod into the Runner target, so `import myo_window_chrome`
+      # in MainFlutterWindow is all the app needs.
+      macos:
+        ffiPlugin: true
+      # Linux and Windows cannot say it plainly. Flutter links a `pluginClass`
+      # plugin into the runner, which is what makes the runner able to call
+      # ApplyWindowChrome, but it also generates a registrant call. An
+      # `ffiPlugin` there is compiled and bundled and never linked into the
+      # runner at all, which is the one thing this package needs. So the class
+      # below exists, and its register function does nothing on purpose — see
+      # the comment on it.
+      linux:
+        pluginClass: MyoWindowChromePlugin
+      windows:
+        pluginClass: MyoWindowChromePluginCApi
