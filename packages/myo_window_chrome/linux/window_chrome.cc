@@ -1,5 +1,6 @@
 #include "myo_window_chrome/window_chrome.h"
 
+#include <gdk/gdk.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
 #endif
@@ -7,6 +8,28 @@
 namespace myo {
 
 void ApplyWindowChrome(GtkWindow* window, const gchar* title) {
+  if (title == nullptr) {
+    // A window that was never given a title answers NULL here, and GTK shows
+    // the application name instead. Treat an empty one the same way, so a
+    // second call cannot blank a title the first call set.
+    title = gtk_window_get_title(window);
+  }
+  if (title != nullptr && *title == '\0') {
+    title = nullptr;
+  }
+
+  // Being called twice is normal, and is the point: a runner may dress the
+  // window before it is realized, and this package's plugin dresses it again
+  // as it registers. Keep the header bar that is already there rather than
+  // stacking a second one on it.
+  GtkWidget* existing = gtk_window_get_titlebar(window);
+  if (GTK_IS_HEADER_BAR(existing)) {
+    if (title != nullptr) {
+      gtk_header_bar_set_title(GTK_HEADER_BAR(existing), title);
+    }
+    return;
+  }
+
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).
@@ -27,10 +50,12 @@ void ApplyWindowChrome(GtkWindow* window, const gchar* title) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, title);
+    if (title != nullptr) {
+      gtk_header_bar_set_title(header_bar, title);
+    }
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
-  } else {
+  } else if (title != nullptr) {
     gtk_window_set_title(window, title);
   }
 }

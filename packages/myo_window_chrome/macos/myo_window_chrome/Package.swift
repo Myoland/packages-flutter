@@ -1,7 +1,10 @@
 // swift-tools-version: 6.0
-// The same sources the podspec compiles, as a Swift package: it is what makes
-// the chrome testable with `swift test` on a Mac that has only the Command
-// Line Tools, with no Xcode, no Flutter and no app build in the way.
+// The treatment, as a Swift package, so `swift test` can exercise it on a Mac
+// with only the Command Line Tools: no Xcode, no Flutter, no app build.
+//
+// Deliberately only MyoWindowTheme.swift. MyoWindowChromePlugin.swift imports
+// FlutterMacOS, which exists inside a Flutter build and nowhere else; the
+// podspec beside this file compiles both.
 
 import PackageDescription
 
@@ -14,7 +17,7 @@ let package = Package(
         .library(name: "myo-window-chrome", targets: ["myo_window_chrome"])
     ],
     targets: [
-        .target(name: "myo_window_chrome"),
+        .target(name: "myo_window_chrome", sources: ["MyoWindowTheme.swift"]),
         .testTarget(
             name: "myo_window_chromeTests",
             dependencies: ["myo_window_chrome"]

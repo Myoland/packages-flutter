@@ -6,18 +6,13 @@ macOS client, the macOS Admin app, the Linux client, the Linux Admin app and
 the Windows client — each carried their own answer to "what does this window
 look like before Flutter draws anything".
 
-Window chrome is one of the few things a Flutter app cannot keep in Dart: it is
-set on the native window while that window is being built, which is before the
-engine starts and therefore before any Dart isolate or plugin registrar exists.
-That is also why this package is shaped the way it is.
-
 ## What each platform gets
 
 | Platform | Treatment |
 | --- | --- |
-| macOS | `darkAqua`, a transparent title bar, and the window painted in the app's canvas — `0xFF16100C` unless the caller passes its own — so the chrome reads as part of the app rather than a strip above it. |
-| Linux | A GNOME header bar carrying the app's title and a close button; a plain title bar under any other X11 window manager, where a header bar fights tiling. |
-| Windows | Dark frame decorations when the desktop is in dark mode, following `AppsUseLightTheme`. |
+| macOS | `darkAqua`, a transparent title bar, and the window painted in the app's canvas — `0xFF16100C` unless the app passes its own — so the chrome reads as part of the app rather than a strip above it. |
+| Linux | A GNOME header bar carrying the window's title and a close button; a plain title bar under any other X11 window manager, where a header bar fights tiling. |
+| Windows | Dark frame decorations when the desktop is in dark mode, following `AppsUseLightTheme`, and put back whenever the desktop theme changes. |
 
 The treatments differ because the desktops do. macOS forces dark because the
 app is dark; Windows follows the system. Unifying those two is a product
@@ -30,52 +25,44 @@ dependencies:
   myo_window_chrome:
     git:
       url: https://github.com/Myoland/packages-flutter.git
-      ref: myo_window_chrome-v0.1.0
+      ref: myo_window_chrome-v0.2.0
       path: packages/myo_window_chrome
 ```
 
-`flutter pub get` is the whole integration. Nothing is added to
-`Runner.xcodeproj`, and no app CMake file has to mention this package: on macOS
-CocoaPods links every pod into the Runner target, and on Linux and Windows
-Flutter's generated `generated_plugins.cmake` links the plugin into the runner
-and puts its include directory on the runner's path.
+`flutter pub get` is the whole integration. **No native file in the app is
+touched** — not `MainFlutterWindow.swift`, not `my_application.cc`, not
+`win32_window.cpp`, and no app CMake file or `Runner.xcodeproj`. The plugin
+applies the chrome as it registers, which happens while the engine is starting
+and before the first frame, so the window is never seen undressed and Dart does
+not have to ask for anything.
 
-**macOS** — in `MainFlutterWindow.swift`:
+To change what it chose — to hand it the colour your design system resolved,
+for instance — call it:
 
-```swift
-import myo_window_chrome
-
-MyoWindowTheme.apply(to: self)
+```dart
+await MyoWindowChrome.apply(background: SwColor.canvas);
 ```
 
-**Linux** — in `my_application.cc`, as the window is built and before the
-`FlView` is created:
+`background` is macOS's: the Linux and Windows title bars are drawn by the
+desktop, not painted by the app. `title` is Linux's: the other two take their
+title from the window itself.
+
+## Calling it earlier on Linux
+
+GTK is the one platform where the timing is worth knowing about. A window is
+realized before any plugin registers, so the header bar is installed on a
+realized (not yet mapped) window. That works — it neither warns nor unrealizes
+the window — but an app that wants the header bar in place before its window is
+realized can still do it itself, and calling twice is safe:
 
 ```cpp
 #include "myo_window_chrome/window_chrome.h"
 
-myo::ApplyWindowChrome(window, "SwiftWire");
+myo::ApplyWindowChrome(window, "My App");
 ```
 
-**Windows** — in `win32_window.cpp`, from `Create` and again on
-`WM_DWMCOLORIZATIONCOLORCHANGED`:
-
-```cpp
-#include "myo_window_chrome/window_chrome.h"
-
-myo::ApplyWindowChrome(window);
-```
-
-## The empty registrants
-
-`myo_window_chrome_plugin_register_with_registrar` on Linux and
-`MyoWindowChromePluginCApiRegisterWithRegistrar` on Windows do nothing,
-on purpose. There is nothing to register — the runner calls
-`ApplyWindowChrome` itself, before any registrar exists. They are there
-because `pluginClass` is the declaration that makes Flutter link a native
-library into the runner, and `ffiPlugin`, the declaration that generates no
-registrant, produces a library the runner never links. macOS has no such
-split: it is declared `ffiPlugin` and stays registrant-free.
+The second call keeps the header bar already there and only refreshes its
+title.
 
 ## Tests
 

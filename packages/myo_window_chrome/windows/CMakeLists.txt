@@ -17,6 +17,8 @@ set(PLUGIN_NAME "myo_window_chrome_plugin")
 add_library(${PLUGIN_NAME} SHARED
   "include/myo_window_chrome/myo_window_chrome_plugin_c_api.h"
   "myo_window_chrome_plugin_c_api.cpp"
+  "myo_window_chrome_plugin.h"
+  "myo_window_chrome_plugin.cpp"
   "window_chrome.cpp"
 )
 

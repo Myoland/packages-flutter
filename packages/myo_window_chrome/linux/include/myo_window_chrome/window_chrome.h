@@ -15,12 +15,12 @@ namespace myo {
 
 // Gives |window| the title bar a Myoland app wears on this desktop: a
 // header bar carrying |title| and a close button where that is the native
-// idiom, and a plain title bar everywhere else.
+// idiom, and a plain title bar everywhere else. A null |title| keeps the
+// window's current one.
 //
-// Call this while the window is being built, before it is shown and before
-// the FlView exists. GTK will not take a new title bar once the window is
-// realized, and the plugin registrar that would otherwise be the natural
-// place to do this does not exist yet.
+// The plugin calls this for the app as it registers, so a runner does not have
+// to. It is safe to call twice, and a runner that wants the chrome in place
+// before the window is realized can still call it itself.
 MYO_WINDOW_CHROME_EXPORT void ApplyWindowChrome(GtkWindow* window,
                                                       const gchar* title);
 

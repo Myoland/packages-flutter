@@ -18,8 +18,7 @@ windows on the same desktop can drift apart.
   # Sources only: the Swift Package beside it carries a Tests directory that
   # must not compile into the app.
   s.source_files     = 'myo_window_chrome/Sources/myo_window_chrome/**/*.swift'
-  # AppKit only. The chrome is applied to the NSWindow before the engine is
-  # created, so nothing here needs FlutterMacOS.
+  s.osx.dependency 'FlutterMacOS'
   s.osx.deployment_target = '13.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '6.0'

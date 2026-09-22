@@ -13,8 +13,8 @@
 extern "C" {
 #endif
 
-// Flutter's generated registrant calls this. It does nothing; see the
-// implementation for why the plugin declaration exists at all.
+// Flutter's generated registrant calls this, which is what dresses the window
+// without any app editing its runner.
 FLUTTER_PLUGIN_EXPORT void MyoWindowChromePluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
