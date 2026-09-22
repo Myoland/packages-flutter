@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <utility>
+#include <variant>
 
 #include "include/myo_window_chrome/window_chrome.h"
 
@@ -37,9 +38,11 @@ MyoWindowChromePlugin::MyoWindowChromePlugin(
   // has to be put back whenever Windows says the theme changed. Doing it here
   // is what spares every app the edit in its own window procedure.
   window_proc_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
-      [](HWND hwnd, UINT message, WPARAM, LPARAM) -> std::optional<LRESULT> {
+      [this](HWND hwnd, UINT message, WPARAM, LPARAM) -> std::optional<LRESULT> {
         if (message == WM_DWMCOLORIZATIONCOLORCHANGED) {
-          ApplyWindowChrome(hwnd);
+          // Re-assert what the app last asked for. Without it a desktop theme
+          // change would drag a deliberately light or dark app along with it.
+          ApplyWindowChrome(hwnd, last_dark_);
         }
         return std::nullopt;
       });
@@ -63,11 +66,24 @@ void MyoWindowChromePlugin::HandleMethodCall(
     result->NotImplemented();
     return;
   }
+
   // `background` is macOS's and `title` is Linux's: a Windows frame is drawn
-  // by the compositor from the system's own colours.
+  // by the compositor, which takes a brightness and nothing else.
+  std::optional<bool> dark;
+  if (const auto* arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments())) {
+    const auto entry = arguments->find(flutter::EncodableValue("dark"));
+    if (entry != arguments->end()) {
+      if (const auto* value = std::get_if<bool>(&entry->second)) {
+        dark = *value;
+      }
+    }
+  }
+  last_dark_ = dark;
+
   HWND window = Window();
   if (window != nullptr) {
-    ApplyWindowChrome(window);
+    ApplyWindowChrome(window, dark);
   }
   result->Success();
 }

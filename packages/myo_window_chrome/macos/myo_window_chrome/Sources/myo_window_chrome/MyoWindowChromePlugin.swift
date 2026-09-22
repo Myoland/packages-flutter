@@ -29,7 +29,7 @@ public final class MyoWindowChromePlugin: NSObject, @preconcurrency FlutterPlugi
         binaryMessenger: platformRegistrar.messenger
       )
       platformRegistrar.addMethodCallDelegate(instance, channel: channel)
-      instance.applyChrome(backgroundColor: nil, allowingRetry: true)
+      instance.applyDefaults(allowingRetry: true)
     }
   }
 
@@ -43,24 +43,26 @@ public final class MyoWindowChromePlugin: NSObject, @preconcurrency FlutterPlugi
     if let argb = arguments?["background"] as? NSNumber {
       backgroundColor = NSColor(argb: argb.uint32Value)
     }
-    applyChrome(backgroundColor: backgroundColor, allowingRetry: false)
+    let dark = (arguments?["dark"] as? NSNumber)?.boolValue
+    if let window = registrar.view?.window {
+      MyoWindowTheme.apply(to: window, backgroundColor: backgroundColor, dark: dark)
+    }
     result(nil)
   }
 
   /// - Parameter allowingRetry: at registration the view may not have been put
   ///   in a window yet. That is a one-turn-of-the-runloop problem, not a
-  ///   permanent one, so the first attempt is allowed a second try; a Dart call
-  ///   is not, because by then a missing window means there is no window.
-  private func applyChrome(backgroundColor: NSColor?, allowingRetry: Bool) {
+  ///   permanent one, so the first attempt is allowed a second try.
+  private func applyDefaults(allowingRetry: Bool) {
     guard let window = registrar.view?.window else {
       if allowingRetry {
         DispatchQueue.main.async { [weak self] in
-          self?.applyChrome(backgroundColor: backgroundColor, allowingRetry: false)
+          self?.applyDefaults(allowingRetry: false)
         }
       }
       return
     }
-    MyoWindowTheme.apply(to: window, backgroundColor: backgroundColor)
+    MyoWindowTheme.applyDefaults(to: window)
   }
 }
 

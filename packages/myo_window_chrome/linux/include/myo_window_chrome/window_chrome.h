@@ -26,6 +26,13 @@ namespace myo {
 MYO_WINDOW_CHROME_EXPORT void ApplyWindowChrome(GtkWindow* window,
                                                       const gchar* title);
 
+// Asks GTK for the dark or light variant of the current theme, which is what
+// a header bar is drawn from. Unlike the title bar itself this is a GtkSettings
+// property, so it applies to the application rather than to one window, and it
+// can be changed at any time -- an app that switches its own appearance calls
+// this so its header bar follows.
+MYO_WINDOW_CHROME_EXPORT void ApplyWindowBrightness(gboolean dark);
+
 }  // namespace myo
 
 #endif  // MYO_WINDOW_CHROME_WINDOW_CHROME_H_

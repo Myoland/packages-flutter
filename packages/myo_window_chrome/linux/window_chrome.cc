@@ -74,4 +74,12 @@ void ApplyWindowChrome(GtkWindow* window, const gchar* title) {
   }
 }
 
+void ApplyWindowBrightness(gboolean dark) {
+  GtkSettings* settings = gtk_settings_get_default();
+  if (settings == nullptr) {
+    return;
+  }
+  g_object_set(settings, "gtk-application-prefer-dark-theme", dark, nullptr);
+}
+
 }  // namespace myo

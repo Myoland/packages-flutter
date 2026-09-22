@@ -1,3 +1,15 @@
+## 0.3.0
+
+* The chrome follows an app that changes its own appearance.
+  `MyoWindowChrome.apply` takes a `brightness`: on macOS it picks the light or
+  dark `NSAppearance`, on Windows it overrides the frame's immersive dark mode
+  rather than following the desktop, and on Linux it asks GTK for the dark or
+  light variant of the theme the header bar is drawn from. Windows remembers
+  what the app asked for, so a desktop theme change no longer drags a
+  deliberately light or dark app along with it.
+* macOS: `apply` leaves out what the caller leaves out, and `applyDefaults` is
+  what the plugin uses before the app has said anything.
+
 ## 0.2.3
 
 * Linux: never swap the title bar on a realized window. GTK warns and

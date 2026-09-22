@@ -6,6 +6,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
+#include <optional>
 
 namespace myo {
 
@@ -28,6 +29,8 @@ class MyoWindowChromePlugin : public flutter::Plugin {
 
   flutter::PluginRegistrarWindows* registrar_;
   int window_proc_id_ = -1;
+  // What Dart last asked for, so a desktop theme change does not undo it.
+  std::optional<bool> last_dark_;
 };
 
 }  // namespace myo

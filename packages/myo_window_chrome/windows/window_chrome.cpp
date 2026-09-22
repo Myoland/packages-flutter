@@ -26,22 +26,28 @@ constexpr const wchar_t kGetPreferredBrightnessRegValue[] =
 
 }  // namespace
 
-void ApplyWindowChrome(HWND window) {
-  DWORD light_mode;
-  DWORD light_mode_size = sizeof(light_mode);
-  // The wide entry point by name: this library is built on its own and does
-  // not inherit the app's UNICODE definition.
-  LSTATUS result = RegGetValueW(HKEY_CURRENT_USER,
-                                kGetPreferredBrightnessRegKey,
-                                kGetPreferredBrightnessRegValue,
-                                RRF_RT_REG_DWORD, nullptr, &light_mode,
-                                &light_mode_size);
-
-  if (result == ERROR_SUCCESS) {
-    BOOL enable_dark_mode = light_mode == 0;
-    DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE,
-                          &enable_dark_mode, sizeof(enable_dark_mode));
+void ApplyWindowChrome(HWND window, std::optional<bool> dark) {
+  if (!dark.has_value()) {
+    DWORD light_mode;
+    DWORD light_mode_size = sizeof(light_mode);
+    // The wide entry point by name: this library is built on its own and does
+    // not inherit the app's UNICODE definition.
+    LSTATUS result = RegGetValueW(HKEY_CURRENT_USER,
+                                  kGetPreferredBrightnessRegKey,
+                                  kGetPreferredBrightnessRegValue,
+                                  RRF_RT_REG_DWORD, nullptr, &light_mode,
+                                  &light_mode_size);
+    if (result != ERROR_SUCCESS) {
+      // No preference recorded and none given: leave the frame alone rather
+      // than guess at it.
+      return;
+    }
+    dark = light_mode == 0;
   }
+
+  BOOL enable_dark_mode = dark.value() ? TRUE : FALSE;
+  DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE,
+                        &enable_dark_mode, sizeof(enable_dark_mode));
 }
 
 }  // namespace myo

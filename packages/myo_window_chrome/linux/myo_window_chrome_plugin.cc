@@ -15,16 +15,17 @@ GtkWindow* WindowForRegistrar(FlPluginRegistrar* registrar) {
   return GTK_IS_WINDOW(toplevel) ? GTK_WINDOW(toplevel) : nullptr;
 }
 
-const gchar* TitleArgument(FlMethodCall* method_call) {
+FlValue* Argument(FlMethodCall* method_call, const gchar* name,
+                  FlValueType type) {
   FlValue* args = fl_method_call_get_args(method_call);
   if (args == nullptr || fl_value_get_type(args) != FL_VALUE_TYPE_MAP) {
     return nullptr;
   }
-  FlValue* title = fl_value_lookup_string(args, "title");
-  if (title == nullptr || fl_value_get_type(title) != FL_VALUE_TYPE_STRING) {
+  FlValue* value = fl_value_lookup_string(args, name);
+  if (value == nullptr || fl_value_get_type(value) != type) {
     return nullptr;
   }
-  return fl_value_get_string(title);
+  return value;
 }
 
 void MethodCallHandler(FlMethodChannel*, FlMethodCall* method_call,
@@ -32,11 +33,18 @@ void MethodCallHandler(FlMethodChannel*, FlMethodCall* method_call,
   FlPluginRegistrar* registrar = FL_PLUGIN_REGISTRAR(user_data);
   g_autoptr(FlMethodResponse) response = nullptr;
   if (strcmp(fl_method_call_get_name(method_call), "apply") == 0) {
+    // `background` is macOS's: the GTK title bar is drawn from the theme, not
+    // painted by the app, so what it takes is a brightness.
+    FlValue* dark = Argument(method_call, "dark", FL_VALUE_TYPE_BOOL);
+    if (dark != nullptr) {
+      myo::ApplyWindowBrightness(fl_value_get_bool(dark) ? TRUE : FALSE);
+    }
     GtkWindow* window = WindowForRegistrar(registrar);
     if (window != nullptr) {
-      // `background` is macOS's: the GTK title bar is drawn by the desktop,
-      // not painted by the app, so there is nothing here to colour.
-      myo::ApplyWindowChrome(window, TitleArgument(method_call));
+      FlValue* title = Argument(method_call, "title", FL_VALUE_TYPE_STRING);
+      myo::ApplyWindowChrome(window,
+                             title == nullptr ? nullptr
+                                              : fl_value_get_string(title));
     }
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
   } else {

@@ -25,7 +25,7 @@ dependencies:
   myo_window_chrome:
     git:
       url: https://github.com/Myoland/packages-flutter.git
-      ref: myo_window_chrome-v0.2.3
+      ref: myo_window_chrome-v0.3.0
       path: packages/myo_window_chrome
 ```
 
@@ -38,16 +38,23 @@ not have to ask for anything.
 
 **Linux needs one line in the runner**, for a reason worth knowing — see below.
 
-To change what it chose — to hand it the colour your design system resolved,
-for instance — call it:
+An app that can change its own appearance tells the chrome, because the title
+bar is the one surface Flutter does not repaint:
 
 ```dart
-await MyoWindowChrome.apply(background: SwColor.canvas);
+await MyoWindowChrome.apply(
+  background: SwColor.canvas,
+  brightness: brightness,
+);
 ```
 
-`background` is macOS's: the Linux and Windows title bars are drawn by the
-desktop, not painted by the app. `title` is Linux's: the other two take their
-title from the window itself.
+`brightness` is the one every platform uses: the macOS appearance, the Windows
+frame's immersive dark mode (which otherwise follows the desktop, and which is
+re-asserted after a desktop theme change so a deliberately light app stays
+light), and on Linux the dark or light variant of the GTK theme the header bar
+is drawn from. `background` is macOS's alone — the other two title bars are
+drawn by the desktop rather than painted by the app. `title` is Linux's: the
+other two take their title from the window itself.
 
 ## Linux: the runner has to make the call
 
