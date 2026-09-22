@@ -30,6 +30,20 @@ void ApplyWindowChrome(GtkWindow* window, const gchar* title) {
     return;
   }
 
+  // A header bar can only be installed before the window is realized. GTK
+  // warns on a realized window and unrealizes it to swap the decoration, and
+  // an app that is already running takes its rendering surface down with it:
+  // measured on GNOME 50 / GTK 3.24, a Flutter window treated this late comes
+  // up black with "Failed to create platform view rendering surface". So the
+  // plugin, which registers after the runner has realized the view, can only
+  // set the title here -- the runner is the one that can dress the window.
+  if (gtk_widget_get_realized(GTK_WIDGET(window))) {
+    if (title != nullptr) {
+      gtk_window_set_title(window, title);
+    }
+    return;
+  }
+
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).

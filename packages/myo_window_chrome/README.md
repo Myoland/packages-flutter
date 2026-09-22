@@ -25,16 +25,18 @@ dependencies:
   myo_window_chrome:
     git:
       url: https://github.com/Myoland/packages-flutter.git
-      ref: myo_window_chrome-v0.2.2
+      ref: myo_window_chrome-v0.2.3
       path: packages/myo_window_chrome
 ```
 
-`flutter pub get` is the whole integration. **No native file in the app is
-touched** — not `MainFlutterWindow.swift`, not `my_application.cc`, not
+`flutter pub get` is the whole integration on **macOS and Windows**: no native
+file in the app is touched — not `MainFlutterWindow.swift`, not
 `win32_window.cpp`, and no app CMake file or `Runner.xcodeproj`. The plugin
 applies the chrome as it registers, which happens while the engine is starting
 and before the first frame, so the window is never seen undressed and Dart does
 not have to ask for anything.
+
+**Linux needs one line in the runner**, for a reason worth knowing — see below.
 
 To change what it chose — to hand it the colour your design system resolved,
 for instance — call it:
@@ -47,13 +49,18 @@ await MyoWindowChrome.apply(background: SwColor.canvas);
 desktop, not painted by the app. `title` is Linux's: the other two take their
 title from the window itself.
 
-## Calling it earlier on Linux
+## Linux: the runner has to make the call
 
-GTK is the one platform where the timing is worth knowing about. A window is
-realized before any plugin registers, so the header bar is installed on a
-realized (not yet mapped) window. That works — it neither warns nor unrealizes
-the window — but an app that wants the header bar in place before its window is
-realized can still do it itself, and calling twice is safe:
+A GTK window is realized before any plugin registers — the runner realizes the
+FlView, and that realizes the window — and GTK will not swap a title bar on a
+realized window without unrealizing it first. Doing that to a running Flutter
+app takes its rendering surface down: measured on GNOME 50 with GTK 3.24.52,
+the window comes up black and the engine logs `Failed to create platform view
+rendering surface`. So the plugin refuses to install a header bar that late; on
+a realized window it only sets the title.
+
+Which means a Linux app makes the call itself, from `my_application.cc`, while
+the window is being built:
 
 ```cpp
 #include "myo_window_chrome/window_chrome.h"
@@ -61,8 +68,8 @@ realized can still do it itself, and calling twice is safe:
 myo::ApplyWindowChrome(window, "My App");
 ```
 
-The second call keeps the header bar already there and only refreshes its
-title.
+The plugin still calls it afterwards, and calling twice is safe: the second
+call keeps the header bar already there and only refreshes its title.
 
 ## Tests
 

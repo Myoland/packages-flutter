@@ -2,7 +2,7 @@ name: myo_window_chrome
 description: The title bar a dark desktop app's window wears. One treatment
   for macOS, Linux and Windows, applied by the plugin itself so no app has to
   edit its native runner.
-version: 0.2.2
+version: 0.2.3
 publish_to: 'none'
 repository: https://github.com/Myoland/packages-flutter
 

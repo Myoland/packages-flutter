@@ -53,8 +53,10 @@ void MethodCallHandler(FlMethodChannel*, FlMethodCall* method_call,
 
 void myo_window_chrome_plugin_register_with_registrar(
     FlPluginRegistrar* registrar) {
-  // Registration runs while the engine is starting and before the first frame,
-  // which is early enough that the window is never seen undressed.
+  // Registration runs before the first frame, but not before the window is
+  // realized -- the runner realizes the FlView, and that realizes the window.
+  // So this refreshes a header bar the runner installed, or sets a title, and
+  // deliberately does not try to install one. See window_chrome.cc.
   GtkWindow* window = WindowForRegistrar(registrar);
   if (window != nullptr) {
     myo::ApplyWindowChrome(window, nullptr);

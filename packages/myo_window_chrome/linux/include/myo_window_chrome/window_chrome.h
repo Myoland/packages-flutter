@@ -18,9 +18,11 @@ namespace myo {
 // idiom, and a plain title bar everywhere else. A null |title| keeps the
 // window's current one.
 //
-// The plugin calls this for the app as it registers, so a runner does not have
-// to. It is safe to call twice, and a runner that wants the chrome in place
-// before the window is realized can still call it itself.
+// **The runner has to call this, before the window is realized.** GTK will
+// not swap a title bar on a realized window without unrealizing it, which
+// takes a running Flutter app's rendering surface down with it. The plugin
+// calls this too, as it registers, but by then the window is realized and all
+// it can do is set the title. Calling it twice is safe.
 MYO_WINDOW_CHROME_EXPORT void ApplyWindowChrome(GtkWindow* window,
                                                       const gchar* title);
 

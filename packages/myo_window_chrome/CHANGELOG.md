@@ -1,3 +1,13 @@
+## 0.2.3
+
+* Linux: never swap the title bar on a realized window. GTK warns and
+  unrealizes the window to do it, which takes a running Flutter app's
+  rendering surface with it -- the window comes up black. Measured on GNOME 50
+  with GTK 3.24.52; an earlier check under Xvfb missed it because nothing was
+  really being composited. The plugin now only refreshes the title on a
+  realized window, so a Linux app still calls `myo::ApplyWindowChrome` from its
+  runner to get a header bar.
+
 ## 0.2.2
 
 * The podspec reads its version from `pubspec.yaml` instead of keeping a second
